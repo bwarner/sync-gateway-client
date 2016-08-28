@@ -1,0 +1,14 @@
+{
+  "env": {
+    "node": true
+  },
+  "extends": "airbnb",
+  "plugins": [
+    "mocha"
+  ],
+  "rules": {
+    "react/require-extension": 0,
+    "mocha/no-exclusive-tests": "error"
+  }
+}
+

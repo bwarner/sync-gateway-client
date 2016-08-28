@@ -1,0 +1,39 @@
+{
+  "name": "sync-gateway-client",
+  "version": "1.0.0",
+  "description": "Javascript Client to Couchbase Lite Sync Gateway",
+  "main": "index.js",
+  "engines": {
+    "node": ">=6",
+    "npm": ">=3.9.5"
+  },
+  "scripts": {
+    "test": "mocha test",
+    "sync_gateway": "sync_gateway -dbname foobar"
+  },
+  "keywords": [
+    "couchbase",
+    "mobile",
+    "javascript"
+  ],
+  "author": "Byron Warner",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.4.3",
+    "eslint-config-airbnb": "^10.0.1",
+    "superagent": "^2.2.0",
+    "superagent-bluebird-promise": "^3.0.2"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "eslint": "^3.4.0",
+    "eslint-config-airbnb": "^10.0.1",
+    "eslint-plugin-import": "^1.14.0",
+    "eslint-plugin-jsx-a11y": "^2.2.0",
+    "eslint-plugin-mocha": "^4.4.0",
+    "eslint-plugin-react": "^6.1.2",
+    "gulp": "^3.9.1",
+    "gulp-mocha": "^3.0.1",
+    "mocha": "^3.0.2"
+  }
+}
