@@ -4,11 +4,14 @@
   },
   "extends": "airbnb",
   "plugins": [
-    "mocha"
+    "mocha",
+    "chai-expect"
   ],
   "rules": {
     "react/require-extension": 0,
-    "mocha/no-exclusive-tests": "error"
+    "mocha/no-exclusive-tests": "error",
+    "chai-expect/missing-assertion": 2,
+    "chai-expect/terminating-properties": 1
   }
 }
 

@@ -1,0 +1,30 @@
+{
+  "CORS": {
+    "origin":["*"],
+    "loginOrigin":["*"],
+    "headers":["Content-Type"],
+    "maxAge": 1728000
+  },
+  "databases": {
+    "sample": {
+      "server": "walrus:",
+      "bucket": "sample-sync",
+      "users": {
+        "alice": {
+          "disabled": false,
+          "password": "password",
+          "admin_channels": [
+            "*"
+          ]
+        },
+        "bob": {
+          "disabled": false,
+          "password": "password",
+          "admin_channels": [
+            "*"
+          ]
+        }
+      }
+    }
+  }
+}
