@@ -8,11 +8,14 @@
 const chai = require('chai');
 const dirtyChai = require('dirty-chai');
 const SyncGateway = require('../lib/client').SyncGateway;
+const SyncGatewayAdmin = require('../lib/client').SyncGatewayAdmin;
+
 global.Promise = require('bluebird').Promise;
 
 chai.use(dirtyChai);
 const expect = chai.expect;
 const client = new SyncGateway({ host: 'localhost', port: 4984, database: 'sample' });
+const admin = new SyncGatewayAdmin({ host: 'localhost', port: 4985, database: 'sample' });
 
 Promise.config({
   // Enable warnings
@@ -53,29 +56,6 @@ describe('Client Library', function () {
       client.getDatabase((error, result) => {
         expect(result).to.exist;
         done(error);
-      });
-    });
-
-    describe.only('Design Documents', function () {
-      it('Can Save a Design Doc', function (done) {
-        const designDoc = {
-          views: {
-            MyView: {
-              map: 'function(doc) { if (doc.name) emit(doc.name, null)}',
-            },
-          },
-        };
-
-        client.saveDesignDoc(designDoc, function (err, result) {
-          if (err) done(err);
-          else {
-            const name = Object.keys(designDoc.views)[0];
-            client.getDesignDoc(name, function (err2, result2) {
-              if (err2) done(err2);
-              else client.deleteDesignDoc(name, done);
-            });
-          }
-        });
       });
     });
     describe('Writing Documents', function () {
@@ -127,26 +107,51 @@ describe('Client Library', function () {
           });
         });
       });
-      describe.skip('When database does not already exists', function () {
-        it('Can create database', (done) => {
-          const name = `DB${new Date().getTime()}`;
-          return client.createDatabase(name, (error, result) => {
-            expect(result).to.exist;
-            done(error);
-          });
+    });
+  });
+});
+
+describe('Admin Gateway', function () {
+  describe('When database does not already exists', function () {
+    it('Can create database', (done) => {
+      const name = `DB${new Date().getTime()}`;
+      admin.createDatabase(name, (error, result) => {
+        expect(error).to.exist;
+        done();
+      });
+    });
+  });
+  describe('When database already exists', function () {
+    it('Cannot create duplicate database', (done) => {
+      const name = `DB${new Date().getTime()}`;
+      admin.createDatabase(name, (error, result) => {
+        expect(result).to.not.be.ok;
+        admin.createDatabase(name, (error2) => {
+          expect(error2).to.exist;
+          done();
         });
       });
-      describe.skip('When database already exists', function () {
-        it('Cannot create duplicate database', (done) => {
-          const name = `DB${new Date().getTime()}`;
-          client.createDatabase(name, (error, result) => {
-            expect(result).to.not.be.ok;
-            client.createDatabase(name, (error2) => {
-              expect(error2).to.exist;
-              done();
-            });
+    });
+  });
+  describe('Design Documents', function () {
+    it('Can Save a Design Doc', function (done) {
+      const designDoc = {
+        views: {
+          MyView: {
+            map: 'function(doc) { if (doc.name) emit(doc.name, null)}',
+          },
+        },
+      };
+
+      const name = Object.keys(designDoc.views)[0];
+      admin.saveDesignDoc(name, JSON.stringify(designDoc), function (err, result) {
+        if (err) done(err);
+        else {
+          admin.getDesignDoc(name, function (err2, result2) {
+            if (err2) done(err2);
+            else admin.deleteDesignDoc(name, done);
           });
-        });
+        }
       });
     });
   });
