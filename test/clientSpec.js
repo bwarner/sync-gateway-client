@@ -25,109 +25,128 @@ Promise.config({
   monitoring: true,
 });
 
-describe('Client Library', function ClientLibrary() {
-  it('Can get server info', function GetServerInfo() {
-    return client.serverInfo().then(response => {
-      expect(response.body.couchdb).to.exist;
+describe('Client Library', function () {
+  it('Can get server info', function GetServerInfo(done) {
+    client.serverInfo((error, response) => {
+      expect(response.couchdb).to.exist;
+      done(error);
     });
   });
-  it('Can create session with proper credentials', function Login() {
-    return client.session('alice', 'password').then((session) => {
+  it('Can create session with proper credentials', function (done) {
+    client.session('alice', 'password', (error, session) => {
       expect(session.SyncGatewaySession).to.exist;
+      done(error);
     });
   });
-  it('Cannot create a session with inproper credentials', function Login() {
-    return client.session('alice', 'xyz').then((session) => {
-      chai.fail('Did not expect promise to be resolved');
-      expect(session.SyncGatewaySession).to.not.exist;
-    })
-    .catch(error => {
-      expect(error).to.exist;
+  it('Cannot create a session with inproper credentials', function (done) {
+    client.session('alice', 'xyz', (error, session) => {
+      expect(error).to.be.an.instanceOf(Error);
+      expect(session).to.not.exist;
+      done();
     });
   });
-  describe('When authenticated', () => {
-    before(() => client.session('alice', 'password'));
-    it('Can retrieve database information client', () =>
-       client.getDatabase()
-            .then(result => {
-              expect(result).to.exist;
-            })
-    );
+  describe('When authenticated', function () {
+    before(function (done) {
+      client.session('alice', 'password', done);
+    });
+    it('Can retrieve database information client', function (done) {
+      client.getDatabase((error, result) => {
+        expect(result).to.exist;
+        done(error);
+      });
+    });
 
+    describe.only('Design Documents', function () {
+      it('Can Save a Design Doc', function (done) {
+        const designDoc = {
+          views: {
+            MyView: {
+              map: 'function(doc) { if (doc.name) emit(doc.name, null)}',
+            },
+          },
+        };
+
+        client.saveDesignDoc(designDoc, function (err, result) {
+          if (err) done(err);
+          else {
+            const name = Object.keys(designDoc.views)[0];
+            client.getDesignDoc(name, function (err2, result2) {
+              if (err2) done(err2);
+              else client.deleteDesignDoc(name, done);
+            });
+          }
+        });
+      });
+    });
     describe('Writing Documents', function () {
-
-      it('Can put document', function() {
+      it('Can put document', function (done) {
         const id = new Date().getTime();
-        client.createOrUpdate(`DB${id}`, { timestamp: id })
-              .then((response) => {
-                expect(response.id).to.exist;
-                expect(response.rev).to.exist;
-                expect(response.ok).to.be.ok;
-              });
+        client.createOrUpdate(`DB${id}`, { timestamp: id }, {}, (error, response) => {
+          expect(response.id).to.exist;
+          expect(response.rev).to.exist;
+          expect(response.ok).to.be.ok;
+          done(error);
+        });
       });
-      it('Can put document without revision', function() {
+      it('Cannot update document without revision', function (done) {
         const id = new Date().getTime();
-        return client.createOrUpdate(`DB${id}`, { timestamp: id })
-                     .then((response) => {
-                       expect(response.ok).to.be.ok;
-                       return client.createOrUpdate(response.id, { timestamp: id + 1 });
-                     })
-                     .then(response => {
-                       chai.assert.fail('did expect update to succeed without revision');
-                     })
-                     .catch(() => 0);
+        client.createOrUpdate(`DB${id}`, { timestamp: id }, {}, (error, response) => {
+          expect(response.ok).to.be.ok;
+          client.createOrUpdate(response.id, { timestamp: id + 1 }, {}, (error2) => {
+            expect(error2).to.be.instanceOf(Error);
+            done();
+          });
+        });
       });
-      it('Can put document with revision', function() {
+      it('Can put document with revision', function (done) {
         const id = new Date().getTime();
-        return client.createOrUpdate(`DB${id}`, { timestamp: id })
-                     .then((response) => {
-                       expect(response.ok).to.be.ok;
-                       return client.createOrUpdate(response.id,
-                                                    { timestamp: id + 1 },
-                                                    { rev: response.rev });
-                     });
+        client.createOrUpdate(`DB${id}`, { timestamp: id }, {}, (error, response) => {
+          expect(response.ok).to.be.ok;
+          client.createOrUpdate(response.id,
+            { timestamp: id + 1 },
+            { rev: response.rev },
+            (error2, result2) => {
+              expect(error2).to.not.exist;
+              expect(result2).to.exist;
+              expect(result2.timestamp).to.exist;
+              done(error2);
+            });
+        });
       });
-      it('Cannot read document expired document', function () {
-        const id = new Date().getTime();
-        return client.createOrUpdate(`_local/DB${id}`, { timestamp: id, _exp: 1 })
-                     .then((response) => {
-                       expect(response.id).to.exist;
-                       expect(response.rev).to.exist;
-                       expect(response.ok).to.be.ok;
-                       return Promise.delay(5000)
-                                     .then(() => client.get(response.id))
-                                     .then((response) => {
-                                       console.log(`responses  ${response}`);
-                                       return response;
-                                      },
-                                     (error) => {
-                                       expect(error.status).to.be.equal(404);
-                                       return error;
-                                     });
-                     });
+      it('Can create documents in bulk', function (done) {
+        client.bulkDocuments([{ docId: 1 }, { docId: 2 }], (error, result) => {
+          expect(result).to.be.instanceOf(Array);
+          expect(result).to.have.lengthOf(2);
+          done(error);
+        });
       });
-    });
-    describe.skip('When database does not already exists', function () {
-      it('Can create database', () => {
-        const name = `DB${new Date().getTime()}`;
-        return client.createDatabase(name)
-              .then(result => {
-                expect(result).to.exist;
-              });
-              // ,error => chai.assert.fail(`could create Database ${name}, error ${error}`));
+      it.skip('Can get documents in bulk', function (done) {
+        client.bulkDocuments([{ docId: 1 }, { docId: 2 }], (error, result) => {
+          client.bulkGet(result, (error2, response) => {
+            done(error);
+          });
+        });
       });
-    });
-    describe.skip('When database already exists', function () {
-      it('Cannot create duplicate database', () => {
-        const name = `DB${new Date().getTime()}`;
-        client.createDatabase(name)
-              .then(result => {
-                expect(result).to.not.be.ok;
-                return client.createDatabase(name);
-              })
-              .catch(error => {
-                console.log(`error ${error}`);
-              });
+      describe.skip('When database does not already exists', function () {
+        it('Can create database', (done) => {
+          const name = `DB${new Date().getTime()}`;
+          return client.createDatabase(name, (error, result) => {
+            expect(result).to.exist;
+            done(error);
+          });
+        });
+      });
+      describe.skip('When database already exists', function () {
+        it('Cannot create duplicate database', (done) => {
+          const name = `DB${new Date().getTime()}`;
+          client.createDatabase(name, (error, result) => {
+            expect(result).to.not.be.ok;
+            client.createDatabase(name, (error2) => {
+              expect(error2).to.exist;
+              done();
+            });
+          });
+        });
       });
     });
   });
