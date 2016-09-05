@@ -93,18 +93,21 @@ describe('Client Library', function () {
             });
         });
       });
+      it('Can delete document', function (done) {
+        const id = new Date().getTime();
+        client.create({ _id: `DB${id}`, name: 'John' }, (error, response) => {
+          if (error) done;
+          else {
+            expect(response.ok).to.be.ok;
+            client.deleteDoc(response.id, response.rev, done);
+          }
+        });
+      });
       it('Can create documents in bulk', function (done) {
         client.bulkDocuments([{ docId: 1 }, { docId: 2 }], (error, result) => {
           expect(result).to.be.instanceOf(Array);
           expect(result).to.have.lengthOf(2);
           done(error);
-        });
-      });
-      it.skip('Can get documents in bulk', function (done) {
-        client.bulkDocuments([{ docId: 1 }, { docId: 2 }], (error, result) => {
-          client.bulkGet(result, (error2, response) => {
-            done(error);
-          });
         });
       });
     });
@@ -115,7 +118,7 @@ describe('Admin Gateway', function () {
   describe('When database does not already exists', function () {
     it('Can create database', (done) => {
       const name = `DB${new Date().getTime()}`;
-      admin.createDatabase(name, (error, result) => {
+      admin.createDatabase(name, (error) => {
         expect(error).to.exist;
         done();
       });
@@ -144,12 +147,15 @@ describe('Admin Gateway', function () {
       };
 
       const name = Object.keys(designDoc.views)[0];
-      admin.saveDesignDoc(name, JSON.stringify(designDoc), function (err, result) {
+      admin.saveDesignDoc(name, JSON.stringify(designDoc), function (err) {
         if (err) done(err);
         else {
           admin.getDesignDoc(name, function (err2, result2) {
             if (err2) done(err2);
-            else admin.deleteDesignDoc(name, done);
+            else {
+              expect(result2).to.exist;
+              admin.deleteDesignDoc(name, done);
+            }
           });
         }
       });
