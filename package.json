@@ -18,7 +18,15 @@
   ],
   "author": "Byron Warner",
   "license": "MIT",
-  "dependencies": {
+  "directories": {
+    "lib": "./lib"
+  },
+  "main": "lib/client.js",
+  "repository" : {
+      "type" : "git",
+      "url" : "https://github.com/bwarner/sync-gateway-client.git"
+    },
+    "dependencies": {
     "bluebird": "^3.4.3",
     "eslint-config-airbnb": "^10.0.1",
     "superagent": "^2.2.0",
