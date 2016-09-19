@@ -115,12 +115,36 @@ describe('Client Library', function () {
 });
 
 describe('Admin Gateway', function () {
-  describe('When database does not already exists', function () {
-    it('Can create database', (done) => {
-      const name = `DB${new Date().getTime()}`;
-      admin.createDatabase(name, (error) => {
-        expect(error).to.exist;
-        done();
+  it.only('Can create a user', (done) => {
+    const name = `DB${new Date().getTime()}`;
+    admin.createOrUpdateUser({
+      name,
+      password: '123456',
+    }, (error) => {
+      expect(error).to.not.exist;
+      admin.getUser(name, (error, user) => {
+        expect(error).to.not.exist;
+        expect(user).to.exist;
+        expect(user.name).to.equal(name);
+        done(error);
+      });
+    });
+  });
+  it('Can create a session', (done) => {
+    const name = `DB${new Date().getTime()}`;
+    const password = '123456';
+    admin.createOrUpdateUser({
+      name,
+      password,
+    }, (error) => {
+      expect(error).to.not.exist;
+      admin.createSession(name, password, (error, session) => {
+        expect(error).to.not.exist;
+        expect(session).to.exist;
+        expect(session.session_id).to.exist;
+        expect(session.expires).to.exist;
+        expect(session.cookie_name).to.exist;
+        done(error);
       });
     });
   });
