@@ -28,38 +28,38 @@ Promise.config({
   monitoring: true,
 });
 
-describe('Client Library', function () {
+describe('Client Library', function() {
   it('Can get server info', function GetServerInfo(done) {
     client.serverInfo((error, response) => {
       expect(response.couchdb).to.exist;
       done(error);
     });
   });
-  it('Can create session with proper credentials', function (done) {
+  it('Can create session with proper credentials', function(done) {
     client.session('alice', 'password', (error, session) => {
       expect(session.SyncGatewaySession).to.exist;
       done(error);
     });
   });
-  it('Cannot create a session with inproper credentials', function (done) {
+  it('Cannot create a session with inproper credentials', function(done) {
     client.session('alice', 'xyz', (error, session) => {
       expect(error).to.be.an.instanceOf(Error);
       expect(session).to.not.exist;
       done();
     });
   });
-  describe('When authenticated', function () {
-    before(function (done) {
+  describe('When authenticated', function() {
+    before(function(done) {
       client.session('alice', 'password', done);
     });
-    it('Can retrieve database information client', function (done) {
+    it('Can retrieve database information client', function(done) {
       client.getDatabase((error, result) => {
         expect(result).to.exist;
         done(error);
       });
     });
-    describe('Writing Documents', function () {
-      it('Can put document', function (done) {
+    describe('Writing Documents', function() {
+      it('Can put document', function(done) {
         const id = new Date().getTime();
         client.createOrUpdate(`DB${id}`, { timestamp: id }, {}, (error, response) => {
           expect(response.id).to.exist;
@@ -68,7 +68,7 @@ describe('Client Library', function () {
           done(error);
         });
       });
-      it('Cannot update document without revision', function (done) {
+      it('Cannot update document without revision', function(done) {
         const id = new Date().getTime();
         client.createOrUpdate(`DB${id}`, { timestamp: id }, {}, (error, response) => {
           expect(response.ok).to.be.ok;
@@ -78,7 +78,7 @@ describe('Client Library', function () {
           });
         });
       });
-      it('Can put document with revision', function (done) {
+      it('Can put document with revision', function(done) {
         const id = new Date().getTime();
         client.createOrUpdate(`DB${id}`, { timestamp: id }, {}, (error, response) => {
           expect(response.ok).to.be.ok;
@@ -93,7 +93,7 @@ describe('Client Library', function () {
             });
         });
       });
-      it('Can delete document', function (done) {
+      it('Can delete document', function(done) {
         const id = new Date().getTime();
         client.create({ _id: `DB${id}`, name: 'John' }, (error, response) => {
           if (error) done;
@@ -103,7 +103,7 @@ describe('Client Library', function () {
           }
         });
       });
-      it('Can create documents in bulk', function (done) {
+      it('Can create documents in bulk', function(done) {
         client.bulkDocuments([{ docId: 1 }, { docId: 2 }], (error, result) => {
           expect(result).to.be.instanceOf(Array);
           expect(result).to.have.lengthOf(2);
@@ -114,10 +114,10 @@ describe('Client Library', function () {
   });
 });
 
-describe('Admin Gateway', function () {
-  it.only('Can create a user', (done) => {
+describe('Admin Gateway', function() {
+  it('Can create a user', (done) => {
     const name = `DB${new Date().getTime()}`;
-    admin.createOrUpdateUser({
+    admin.createUser({
       name,
       password: '123456',
     }, (error) => {
@@ -130,10 +130,26 @@ describe('Admin Gateway', function () {
       });
     });
   });
+  it('Can update a user', (done) => {
+    const name = `DB${new Date().getTime()}`;
+    admin.createUser({
+      name,
+      password: '123456',
+    }, (error) => {
+      expect(error).to.not.exist;
+      admin.updateUser({
+        name,
+        password: '111111',
+      }, (error, user) => {
+        expect(error).to.not.exist;
+        done(error);
+      });
+    });
+  });
   it('Can create a session', (done) => {
     const name = `DB${new Date().getTime()}`;
     const password = '123456';
-    admin.createOrUpdateUser({
+    admin.createUser({
       name,
       password,
     }, (error) => {
@@ -148,7 +164,7 @@ describe('Admin Gateway', function () {
       });
     });
   });
-  describe('When database already exists', function () {
+  describe('When database already exists', function() {
     it('Cannot create duplicate database', (done) => {
       const name = `DB${new Date().getTime()}`;
       admin.createDatabase(name, (error, result) => {
@@ -160,8 +176,8 @@ describe('Admin Gateway', function () {
       });
     });
   });
-  describe('Design Documents', function () {
-    it('Can Save a Design Doc', function (done) {
+  describe('Design Documents', function() {
+    it('Can Save a Design Doc', function(done) {
       const designDoc = {
         views: {
           MyView: {
@@ -171,10 +187,10 @@ describe('Admin Gateway', function () {
       };
 
       const name = Object.keys(designDoc.views)[0];
-      admin.saveDesignDoc(name, JSON.stringify(designDoc), function (err) {
+      admin.saveDesignDoc(name, JSON.stringify(designDoc), function(err) {
         if (err) done(err);
         else {
-          admin.getDesignDoc(name, function (err2, result2) {
+          admin.getDesignDoc(name, function(err2, result2) {
             if (err2) done(err2);
             else {
               expect(result2).to.exist;

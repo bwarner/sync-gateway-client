@@ -1,6 +1,6 @@
 {
   "name": "sync-gateway-client",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Javascript Client to Couchbase Lite Sync Gateway",
   "main": "index.js",
   "engines": {
