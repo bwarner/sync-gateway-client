@@ -146,6 +146,21 @@ describe('Admin Gateway', function() {
       });
     });
   });
+  it('Can create a facebook linked session', (done) => {
+    const accessToken = process.env.FB_ACCESS_TOKEN;
+    const email = 'bfwarner@gmail.com';
+    const remoteURL = 'http://localhost:4984';
+    expect(accessToken).to.exist;
+    client.createFacebookSession(accessToken, email, remoteURL, (error, session) => {
+      expect(error).to.not.exist;
+      expect(session).to.exist;
+      expect(session.session_id).to.exist;
+      expect(session.expires).to.exist;
+      expect(session.cookie_name).to.exist;
+      done(error);
+    });
+  });
+
   it('Can create a session', (done) => {
     const name = `DB${new Date().getTime()}`;
     const password = '123456';
@@ -154,13 +169,13 @@ describe('Admin Gateway', function() {
       password,
     }, (error) => {
       expect(error).to.not.exist;
-      admin.createSession(name, password, (error, session) => {
-        expect(error).to.not.exist;
+      client.session(name, password, (error2, session) => {
+        expect(error2).to.not.exist;
         expect(session).to.exist;
         expect(session.session_id).to.exist;
         expect(session.expires).to.exist;
         expect(session.cookie_name).to.exist;
-        done(error);
+        done(error2);
       });
     });
   });
