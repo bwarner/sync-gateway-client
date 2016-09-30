@@ -151,8 +151,9 @@ describe('Admin Gateway', function () {
     const email = 'bfwarner@gmail.com';
     const remoteURL = 'http://localhost:4984';
     expect(accessToken).to.exist;
-    client.createFacebookSession(accessToken, email, remoteURL, (error, session) => {
+    client.createFacebookSession(accessToken, email, remoteURL, (error, response) => {
       expect(error).to.not.exist;
+      const session = response.session;
       expect(session).to.exist;
       expect(session.session_id).to.exist;
       expect(session.expires).to.exist;
@@ -169,8 +170,9 @@ describe('Admin Gateway', function () {
       password,
     }, (error) => {
       expect(error).to.not.exist;
-      client.session({ name, password }, (error2, session) => {
+      client.session({ name, password }, (error2, response) => {
         expect(error2).to.not.exist;
+        const session = response.session;
         expect(session).to.exist;
         expect(session.session_id).to.exist;
         expect(session.expires).to.exist;
