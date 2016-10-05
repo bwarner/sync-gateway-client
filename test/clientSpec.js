@@ -218,5 +218,11 @@ describe('Admin Gateway', function () {
       });
     });
   });
+  describe('Constructor Tests', function () {
+    it('Can access url in configuration', function (done) {
+      const adminGateway = new SyncGatewayAdmin({ url: 'http://localhost:4985/sample'} );
+      adminGateway.serverInfo(done);
+    });
+  });
 });
 /* eslint-enable prefer-arrow-callback */
